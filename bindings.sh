@@ -5,6 +5,7 @@ bindings=""
 # Function to extract variable names from the TypeScript interface
 extract_env_vars() {
   grep -o '[A-Z_]\+:' worker-configuration.d.ts | sed 's/://'
+  echo "VITE_SUPABASE_ACCESS_TOKEN"
 }
 
 # First try to read from .env.local if it exists

@@ -141,6 +141,14 @@ export function useGit() {
             `VITE_SUPABASE_ANON_KEY=${supabase.anonKey}\n`;
 
           await webcontainer.fs.writeFile('.env', envContent);
+
+          // Keep .env in the cloned file data as well.
+          // GitCloneButton rebuilds the project from this data via importChat.
+          fileData.current['.env'] = {
+            data: envContent,
+            encoding: 'utf8',
+          };
+
           console.log('Supabase .env written to cloned project');
         }
 
@@ -170,7 +178,7 @@ export function useGit() {
 
           // Retry for network errors, up to 3 times
           if (retryCount < 3) {
-            return gitClone(url, retryCount + 1);
+            return gitClone(url, retryCount + 1, supabase);
           }
 
           throw new Error(

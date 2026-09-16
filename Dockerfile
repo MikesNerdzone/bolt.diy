@@ -38,6 +38,7 @@ RUN pnpm prune --prod --ignore-scripts
 
 # ---- production stage ----
 FROM prod-deps AS bolt-ai-production
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -71,11 +72,12 @@ COPY --from=prod-deps /app/bindings.sh /app/bindings.sh
 RUN mkdir -p /root/.config/.wrangler && \
     echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
 
-# Build Bolt.diy with additional Node.js memory
-RUN NODE_OPTIONS="--max-old-space-size=8192" pnpm run build
 
 # Make bindings script executable
 RUN chmod +x /app/bindings.sh
+
+# Wrangler is required by the dockerstart command
+RUN npm install -g wrangler@4.44.0
 
 EXPOSE 5173
 
