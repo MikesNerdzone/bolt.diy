@@ -6,6 +6,8 @@ bindings=""
 extract_env_vars() {
   grep -o '[A-Z_]\+:' worker-configuration.d.ts | sed 's/://'
   echo "VITE_SUPABASE_ACCESS_TOKEN"
+  echo "VITE_BOLT_SYNC_SUPABASE_URL"
+  echo "VITE_BOLT_SYNC_SUPABASE_ANON_KEY"
 }
 
 # First try to read from .env.local if it exists
@@ -30,5 +32,4 @@ else
 fi
 
 bindings=$(echo $bindings | sed 's/[[:space:]]*$//')
-
-echo $bindings
+echo "$bindings"

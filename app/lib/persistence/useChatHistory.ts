@@ -22,6 +22,7 @@ import type { Snapshot } from './types';
 import { webcontainer } from '~/lib/webcontainer';
 import { detectProjectCommands, createCommandActionsString } from '~/utils/projectCommands';
 import type { ContextAnnotation } from '~/types/context';
+import { syncChatByLocalId } from '~/lib/sync/chatSync.client';
 
 export interface ChatHistoryItem {
   id: string;
@@ -341,6 +342,10 @@ ${value.content}
         undefined,
         chatMetadata.get(),
       );
+
+      syncChatByLocalId(db, finalChatId).catch((error) => {
+        console.error('Bolt Cloud Sync: Chat upload failed', error);
+      });
     },
     duplicateCurrentChat: async (listItemId: string) => {
       if (!db || (!mixedId && !listItemId)) {

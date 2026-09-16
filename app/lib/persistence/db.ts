@@ -72,25 +72,37 @@ export async function setMessages(
   metadata?: IChatMetadata,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction('chats', 'readwrite');
-    const store = transaction.objectStore('chats');
+    const transaction = db.transaction(CHATS_STORE, 'readwrite');
+    const store = transaction.objectStore(CHATS_STORE);
+    const getRequest = store.get(id);
 
-    if (timestamp && isNaN(Date.parse(timestamp))) {
-      reject(new Error('Invalid timestamp'));
-      return;
-    }
+    getRequest.onerror = () => reject(getRequest.error);
 
-    const request = store.put({
-      id,
-      messages,
-      urlId,
-      description,
-      timestamp: timestamp ?? new Date().toISOString(),
-      metadata,
-    });
+    getRequest.onsuccess = () => {
+      const existing = getRequest.result as
+        | {
+            syncId?: string;
+            cloudUpdatedAt?: string;
+          }
+        | undefined;
 
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
+      const putRequest = store.put({
+        id,
+        messages,
+        urlId,
+        description,
+        timestamp: timestamp ?? new Date().toISOString(),
+        metadata,
+        syncId: existing?.syncId,
+        cloudUpdatedAt: existing?.cloudUpdatedAt,
+      });
+
+      putRequest.onerror = () => reject(putRequest.error);
+    };
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error);
   });
 }
 

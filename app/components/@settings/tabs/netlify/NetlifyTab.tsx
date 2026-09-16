@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
 import { netlifyConnection, updateNetlifyConnection, initializeNetlifyConnection } from '~/lib/stores/netlify';
+import { chatId } from '~/lib/persistence';
 import type { NetlifySite, NetlifyDeploy, NetlifyBuild, NetlifyUser } from '~/types/netlify';
 import { Button } from '~/components/ui/Button';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '~/components/ui/Collapsible';
@@ -36,6 +37,7 @@ const NetlifyLogo = () => (
 
 export default function NetlifyTab() {
   const connection = useStore(netlifyConnection);
+  const currentChatId = useStore(chatId);
   const [tokenInput, setTokenInput] = useState('');
   const [fetchingStats, setFetchingStats] = useState(false);
   const [sites, setSites] = useState<NetlifySite[]>([]);
@@ -963,7 +965,28 @@ export default function NetlifyTab() {
                             <>
                               <div className="mt-4 pt-3 border-t border-bolt-elements-borderColor">
                                 <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+
+                                      if (!currentChatId) {
+                                        toast.error('Kein aktives Projekt gefunden');
+                                        return;
+                                      }
+
+                                      localStorage.setItem(`netlify-site-${currentChatId}`, site.id);
+                                      toast.success(`${site.name} wird jetzt für dieses Projekt verwendet`);
+                                    }}
+                                    className="flex items-center gap-1 text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary"
+                                  >
+                                    <div className="i-ph:rocket-launch w-4 h-4 text-bolt-elements-item-contentAccent" />
+                                    Für dieses Projekt verwenden
+                                  </Button>
+
                                   {siteActions.map((action) => (
+
                                     <Button
                                       key={action.name}
                                       variant={action.variant || 'outline'}

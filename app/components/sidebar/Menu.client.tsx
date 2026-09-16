@@ -14,6 +14,7 @@ import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
 import { profileStore } from '~/lib/stores/profile';
+import { deleteCloudChat } from '~/lib/sync/chatSync.client';
 
 const menuVariants = {
   closed: {
@@ -103,7 +104,10 @@ export const Menu = () => {
         console.error(`Error deleting snapshot for chat ${id}:`, snapshotError);
       }
 
-      // Delete the chat from the database
+      // Delete cloud copy first so it cannot return on the next sync.
+      await deleteCloudChat(db, id);
+
+      // Delete the chat from the local database.
       await deleteById(db, id);
       console.log('Successfully deleted chat:', id);
     },
@@ -266,6 +270,16 @@ export const Menu = () => {
       loadEntries();
     }
   }, [open, loadEntries]);
+
+  useEffect(() => {
+    const refreshAfterSync = () => loadEntries();
+
+    window.addEventListener('bolt-chat-sync-complete', refreshAfterSync);
+
+    return () => {
+      window.removeEventListener('bolt-chat-sync-complete', refreshAfterSync);
+    };
+  }, [loadEntries]);
 
   // Exit selection mode when sidebar is closed
   useEffect(() => {

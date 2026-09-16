@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ClientOnly } from 'remix-utils/client-only';
+import { CloudSyncGate } from './components/sync/CloudSyncGate.client';
 import { cssTransition, ToastContainer } from 'react-toastify';
 
 import reactToastifyStyles from 'react-toastify/dist/ReactToastify.css?url';
@@ -146,7 +147,13 @@ export default function App() {
 
   return (
     <Layout>
-      <Outlet />
+      <ClientOnly fallback={null}>
+        {() => (
+          <CloudSyncGate>
+            <Outlet />
+          </CloudSyncGate>
+        )}
+      </ClientOnly>
     </Layout>
   );
 }
