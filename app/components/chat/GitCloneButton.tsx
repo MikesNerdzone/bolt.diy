@@ -11,6 +11,8 @@ import { classNames } from '~/utils/classNames';
 import { Button } from '~/components/ui/Button';
 import type { IChatMetadata } from '~/lib/persistence/db';
 import { X, Github, GitBranch } from 'lucide-react';
+import { useStore } from '@nanostores/react';
+import { supabaseConnection } from '~/lib/stores/supabase';
 
 // Import the new repository selector components
 import { GitHubRepositorySelector } from '~/components/@settings/tabs/github/components/GitHubRepositorySelector';
@@ -49,6 +51,7 @@ interface GitCloneButtonProps {
 
 export default function GitCloneButton({ importChat, className }: GitCloneButtonProps) {
   const { ready, gitClone } = useGit();
+  const supabaseConn = useStore(supabaseConnection);
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<'github' | 'gitlab' | null>(null);
@@ -63,7 +66,10 @@ export default function GitCloneButton({ importChat, className }: GitCloneButton
     setSelectedProvider(null);
 
     try {
-      const { workdir, data } = await gitClone(repoUrl);
+      const { workdir, data } = await gitClone(repoUrl, 0, {
+        supabaseUrl: supabaseConn?.credentials?.supabaseUrl,
+        anonKey: supabaseConn?.credentials?.anonKey,
+      });
 
       if (importChat) {
         const filePaths = Object.keys(data).filter((filePath) => !ig.ignores(filePath));

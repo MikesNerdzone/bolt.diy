@@ -43,7 +43,11 @@ export function useGit() {
   }, []);
 
   const gitClone = useCallback(
-    async (url: string, retryCount = 0) => {
+    async (
+      url: string,
+      retryCount = 0,
+      supabase?: { supabaseUrl?: string; anonKey?: string },
+    ) => {
       if (!webcontainer || !fs || !ready) {
         throw new Error('Webcontainer not initialized. Please try again later.');
       }
@@ -128,6 +132,17 @@ export function useGit() {
             saveGitAuth(baseUrl, auth);
           },
         });
+
+        // Recreate the project's Supabase client environment after cloning.
+        // The .env file is normally not committed to Git.
+        if (supabase?.supabaseUrl && supabase?.anonKey) {
+          const envContent =
+            `VITE_SUPABASE_URL=${supabase.supabaseUrl}\n` +
+            `VITE_SUPABASE_ANON_KEY=${supabase.anonKey}\n`;
+
+          await webcontainer.fs.writeFile('.env', envContent);
+          console.log('Supabase .env written to cloned project');
+        }
 
         const data: Record<string, { data: any; encoding?: string }> = {};
 

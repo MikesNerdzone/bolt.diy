@@ -23,6 +23,7 @@ import { Button } from '~/components/ui/Button';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '~/components/ui/Collapsible';
 import { formatDistanceToNow } from 'date-fns';
 import { Badge } from '~/components/ui/Badge';
+import { chatId } from '~/lib/persistence/useChatHistory';
 
 // Add the Netlify logo SVG component at the top of the file
 const NetlifyLogo = () => (
@@ -47,6 +48,7 @@ export default function NetlifyConnection() {
   console.log('NetlifyConnection component mounted');
 
   const connection = useStore(netlifyConnection);
+  const currentChatId = useStore(chatId);
   const [tokenInput, setTokenInput] = useState('');
   const [fetchingStats, setFetchingStats] = useState(false);
   const [sites, setSites] = useState<NetlifySite[]>([]);
@@ -663,7 +665,27 @@ export default function NetlifyConnection() {
                           {activeSiteIndex === index && (
                             <>
                               <div className="mt-4 pt-3 border-t border-bolt-elements-borderColor">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+
+                                      if (!currentChatId) {
+                                        toast.error('Kein aktives Projekt gefunden');
+                                        return;
+                                      }
+
+                                      localStorage.setItem(`netlify-site-${currentChatId}`, site.id);
+                                      toast.success(`${site.name} wird jetzt für dieses Projekt verwendet`);
+                                    }}
+                                    className="flex items-center gap-1 text-bolt-elements-textPrimary dark:text-bolt-elements-textPrimary"
+                                  >
+                                    <RocketLaunchIcon className="h-4 w-4 text-bolt-elements-item-contentAccent" />
+                                    Für dieses Projekt verwenden
+                                  </Button>
+
                                   {siteActions.map((action) => (
                                     <Button
                                       key={action.name}

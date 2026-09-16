@@ -71,6 +71,9 @@ COPY --from=prod-deps /app/bindings.sh /app/bindings.sh
 RUN mkdir -p /root/.config/.wrangler && \
     echo '{"enabled":false}' > /root/.config/.wrangler/metrics.json
 
+# Build Bolt.diy with additional Node.js memory
+RUN NODE_OPTIONS="--max-old-space-size=8192" pnpm run build
+
 # Make bindings script executable
 RUN chmod +x /app/bindings.sh
 
